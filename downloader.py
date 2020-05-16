@@ -1,4 +1,5 @@
 import requests
+import os
 import json
 from datetime import datetime
 
@@ -55,7 +56,7 @@ class TelemetryDownloader:
 
             page += 1
 
-        print('\nAll frames count: ' + str(len(self.telemetry)), flush=True)
+        print('\nAll frames count: {}\n'.format(str(len(self.telemetry))), flush=True)
 
     def reverse_telemetry(self):
         self.telemetry = self.telemetry[::-1]
@@ -81,7 +82,21 @@ class TelemetryDownloader:
 
         telemetry_content_bytearray = bytearray.fromhex(telemetry_content)
 
-        file_name = str(datetime.today().strftime('%Y-%m-%d-%H-%M-%S')) + "-telemetry.hex"
+        path = "./data/"
+
+        if not os.path.isdir(path):
+            try:
+                os.mkdir(path)
+            except OSError:
+                print("Creation of the directory {} failed. Please create it by yourself and run script again".format(
+                    path), flush=True)
+                exit()
+            else:
+                print("Successfully created the directory {} ".format(path), flush=True)
+        else:
+            print("Writing to file.. ", flush=True)
+
+        file_name = path + str(datetime.today().strftime('%Y-%m-%d-%H-%M-%S')) + "-telemetry.hex"
         file = open(file_name, "wb")
         file.write(telemetry_content_bytearray)
         file.close()
