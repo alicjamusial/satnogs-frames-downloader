@@ -4,18 +4,30 @@ import json
 from datetime import datetime
 
 
+def create_dir():
+    path = "./data/"
+    if not os.path.isdir(path):
+        try:
+            os.mkdir(path)
+        except OSError:
+            print("Creation of the directory {} failed. Please create it by yourself and run script again".format(
+                path), flush=True)
+            exit()
+        else:
+            print("Successfully created the directory {} ".format(path), flush=True)
+    return path
+
+
 class TelemetryDownloader:
     def __init__(self, args):
-        print(args)
         self.token = 'Token {}'.format(args.accessToken)
         self.satellite = args.satelliteId
 
         self.start = args.startDate
         self.end = args.endDate
 
+        self.numberOfPages = args.numberOfPages
         self.validLength = args.validLength
-        self.outputMerge = args.outputMerge
-        self.outputReverse = args.outputReverse
 
         self.url = "https://db.satnogs.org/api/telemetry/?satellite=" + self.satellite
 
@@ -52,9 +64,13 @@ class TelemetryDownloader:
             else:
                 print('There is something wrong with the response. Status code: {}'.format(response.status_code),
                       flush=True)
+
                 exit()
 
             page += 1
+            if self.numberOfPages is not None and page > self.numberOfPages:
+                print('All requested pages ({}) loaded.'.format(self.numberOfPages))
+                break
 
         print('\nAll frames count: {}\n'.format(str(len(self.telemetry))), flush=True)
 
@@ -74,31 +90,25 @@ class TelemetryDownloader:
             print('Last valid frame timestamp: {}'.format(self.telemetry[len(self.telemetry) - 1]['timestamp']),
                   flush=True)
 
-    def prepare_file(self):
-        telemetry_content = ''
-
-        for single in self.telemetry:
-            telemetry_content += single['frame'][40:]
-
-        telemetry_content_bytearray = bytearray.fromhex(telemetry_content)
-
-        path = "./data/"
-
-        if not os.path.isdir(path):
-            try:
-                os.mkdir(path)
-            except OSError:
-                print("Creation of the directory {} failed. Please create it by yourself and run script again".format(
-                    path), flush=True)
-                exit()
-            else:
-                print("Successfully created the directory {} ".format(path), flush=True)
-        else:
-            print("Writing to file.. ", flush=True)
+    def create_file_hex(self):
+        writeable_telemetry = ''
+        for single_frame in self.telemetry:
+            writeable_telemetry += single_frame['frame']
+        path = create_dir()
 
         file_name = path + str(datetime.today().strftime('%Y-%m-%d-%H-%M-%S')) + "-telemetry.hex"
         file = open(file_name, "wb")
-        file.write(telemetry_content_bytearray)
+        file.write(bytearray.fromhex(writeable_telemetry))
         file.close()
-
         print('\nAll frames saved to file: {}\n'.format(file_name), flush=True)
+
+    def create_file_json(self):
+        writeable_telemetry = json.dumps(self.telemetry)
+        path = create_dir()
+
+        file_name = path + str(datetime.today().strftime('%Y-%m-%d-%H-%M-%S')) + "-telemetry.json"
+        file = open(file_name, "w")
+        file.write(writeable_telemetry)
+        file.close()
+        print('\nAll frames saved to file: {}\n'.format(file_name), flush=True)
+
