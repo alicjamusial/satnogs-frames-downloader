@@ -1,6 +1,6 @@
-## SatNOGS frames downloader
+## SatNOGS frames downloader 📡
 
-Python3 script to automatically download SatNOGS decoded data from any satellite and create `.hex` or `.json` file with the results.
+Python script to automatically download SatNOGS data from a chosen satellite and create `.hex` or `.json` file with the results.
 
 #### Requirements
 - python > 3.5.0
