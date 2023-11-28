@@ -37,6 +37,7 @@ class TelemetryDownloader:
         filters = ''
         filters += "&start=" + self.start if self.start else ''
         filters += "&end=" + self.end if self.end else ''
+        filters += "&results=d1"
 
         page = 1
 
